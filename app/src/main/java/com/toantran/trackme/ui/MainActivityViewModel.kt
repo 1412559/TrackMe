@@ -20,7 +20,4 @@ class MainActivityViewModel : ViewModel() {
         allTrackedLocation = repository.allTrackedLocationDao
     }
 
-
-
-
 }
