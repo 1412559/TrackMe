@@ -83,14 +83,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun observeViewModel() {
         mainActivityViewModel.allTrackedLocation.observe(this, Observer { listTrackedLocation ->
             findViewById<TextView>(R.id.locationTxt).text = "${listTrackedLocation.size} items"
-
             mapManager.drawPolyline(listTrackedLocation)
+        })
 
-            Toast.makeText(
-                this@MainActivity,
-                "Current Length is: ${mapManager.computePolylineLength(listTrackedLocation)}",
-                Toast.LENGTH_SHORT
-            ).show()
+        mainActivityViewModel.distance.observe(this, Observer { distance ->
+            findViewById<TextView>(R.id.txtDistance).text = "${distance} km"
+        })
+
+        mainActivityViewModel.velocity.observe(this, Observer { velocity ->
+            findViewById<TextView>(R.id.txtSpeed).text = "${velocity} km/h"
         })
     }
 
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 return
             }
         }
-        mMap.isMyLocationEnabled = true
+        mapManager.requestPermissionLocationSuccess()
         startTrackingLocationService()
     }
 

@@ -1,10 +1,13 @@
 package com.toantran.trackme.ui.main
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
 import com.google.maps.android.SphericalUtil
+import com.toantran.trackme.MyApplication
 import com.toantran.trackme.R
 import com.toantran.trackme.db.entity.TrackedLocationEntity
 
@@ -36,12 +39,15 @@ class MapManager {
 //        )
     }
 
-    fun computePolylineLength(listTrackedLocation: List<TrackedLocationEntity>) : Double {
-        val l = SphericalUtil.computeLength(listTrackedLocation.map {
-            return@map LatLng(it.latitude, it.longitude)
-        })
-        return l
+    companion object {
+        fun computePolylineLength(listTrackedLocation: List<TrackedLocationEntity>) : Double {
+            return SphericalUtil.computeLength(listTrackedLocation.map {
+                return@map LatLng(it.latitude, it.longitude)
+            })
+        }
     }
+
+
 
     fun takeSnapshot(listTrackedLocation: List<TrackedLocationEntity>, onFinish: ((Bitmap)-> Unit)) {
         val builder: LatLngBounds.Builder = LatLngBounds.Builder()
@@ -61,6 +67,24 @@ class MapManager {
             override fun onCancel() {
             }
         })
+    }
+
+    @SuppressLint("MissingPermission")
+    fun requestPermissionLocationSuccess() {
+        mMap?.isMyLocationEnabled = true
+
+        val locationResult = LocationServices.getFusedLocationProviderClient(MyApplication.getInstance()).lastLocation
+        locationResult.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val lastKnownLocation = task.result
+                lastKnownLocation?.let {
+                    mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            it.latitude,
+                            it.longitude), 12f))
+                }
+            }
+        }
     }
 
 
