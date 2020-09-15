@@ -38,10 +38,13 @@ class TrackingLocationManager(
 
     private fun createLocationRequest() {
         mLocationRequest = LocationRequest.create().apply {
-            interval = LOCATION_UPDATED_FREQUENCY_MAX.toLong()
             // Todo: set smallest distance to notify location change
 //        mLocationRequest.setSmallestDisplacement(30f);
-            fastestInterval = LOCATION_UPDATED_FREQUENCY_MIN.toLong()
+            smallestDisplacement = 10f
+            interval = 0L
+            fastestInterval = 0L
+//            interval = LOCATION_UPDATED_FREQUENCY_MAX.toLong()
+//            fastestInterval = LOCATION_UPDATED_FREQUENCY_MIN.toLong()
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }

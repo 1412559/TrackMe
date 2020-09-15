@@ -1,4 +1,4 @@
-package com.toantran.trackme.ui
+package com.toantran.trackme.ui.main
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
