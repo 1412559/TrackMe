@@ -3,13 +3,18 @@ package com.toantran.trackme.service
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.util.Log
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
+import com.toantran.trackme.MyApplication
 
 class TrackingLocationManager(
     private val mContext: Context,
-    private val onLocationUpdate: (LocationResult?) -> Unit) {
+    private val onLocationUpdate: (LocationResult?) -> Unit,
+    private val onTrackingLocationStart: (Location) -> Unit) {
 
     private val TAG = TrackingLocationManager::class.java.name
 
@@ -20,7 +25,7 @@ class TrackingLocationManager(
     private lateinit var mLocationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
 
-    private var requestingLocationUpdates = true
+    private var requestingLocationUpdates = false
 
     init {
         // Get fusedLocationClient before doing anything related
@@ -29,7 +34,7 @@ class TrackingLocationManager(
         createLocationRequest()
         // init callback when new location updated.
         initLocationUpdatedCallback()
-        resume()
+        resumeLocationUpdates()
     }
 
     fun destroy() {
@@ -57,8 +62,9 @@ class TrackingLocationManager(
         }
     }
 
-    private fun resume() {
-        if (requestingLocationUpdates) {
+    fun resumeLocationUpdates() {
+        if (!requestingLocationUpdates) {
+            requestingLocationUpdates = true
             startLocationUpdates()
         }
     }
@@ -72,9 +78,25 @@ class TrackingLocationManager(
                     null
 //                    Looper.getMainLooper()
                 )
+                val locationResult = mFusedLocationClient.lastLocation
+                locationResult.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val lastKnownLocation = task.result
+                        lastKnownLocation?.let {
+                            onTrackingLocationStart(it)
+                        }
+                    }
+                }
             } else {
                 Log.d(TAG, "startLocationUpdates(): some permission not granted.")
             }
+        }
+    }
+
+    fun stopLocationUpdates() {
+        if (requestingLocationUpdates) {
+            mFusedLocationClient.removeLocationUpdates(locationCallback)
+            requestingLocationUpdates = false
         }
     }
 

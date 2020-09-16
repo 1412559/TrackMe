@@ -1,23 +1,25 @@
 package com.toantran.trackme.service
 
-import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.location.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.toantran.trackme.db.MyDatabase
-import com.toantran.trackme.db.dao.TrackedLocationDao
 import com.toantran.trackme.db.entity.TrackedLocationEntity
 import com.toantran.trackme.repository.TrackedLocationRepository
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 
 class TrackingLocationService : Service() {
@@ -32,8 +34,25 @@ class TrackingLocationService : Service() {
 
     private val ioScope = CoroutineScope(Dispatchers.IO + Job())
 
+    private val recordTimeInSec = MutableLiveData<Int>(0)
+    private var timer : Timer? = null
+
+    // Binder given to clients
+    private val mBinder: IBinder = MyBinder()
+
+    /**
+     * Class used for the client Binder. The Binder object is responsible for returning an instance
+     * of "TrackingLocationService" to the client.
+     */
+    inner class MyBinder : Binder() {
+        // Return this instance of TrackingLocationService so clients can call public methods
+        val service: TrackingLocationService
+            get() =this@TrackingLocationService
+    }
+
+
     override fun onBind(intent: Intent): IBinder? {
-        return null;
+        return mBinder
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -48,6 +67,9 @@ class TrackingLocationService : Service() {
         setupTrackingLocationManager()
 
         repository = TrackedLocationRepository(MyDatabase.getDatabase().trackedLocationDao())
+
+        startTimer()
+
     }
 
     private fun setupNotification() {
@@ -79,26 +101,70 @@ class TrackingLocationService : Service() {
 
     private fun setupTrackingLocationManager() {
         trackingLocationManager = TrackingLocationManager(
-            this
-        ) { locationResult ->
-            locationResult?.locations?.forEach { location ->
-                Log.d(TAG,"Location get by Fuse: $location")
+            this,
+            { locationResult ->
+                locationResult?.locations?.forEach { location ->
+                    Log.d(TAG,"Location get by Fuse: $location")
+                    ioScope.launch {
+                        repository.insert(TrackedLocationEntity(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            speed = location.speed,
+                            distance = 0f,
+                            duration = 0f,
+                            currentTime = Date()
+                        ))
+                    }
+                }
+            },
+            { location ->
                 ioScope.launch {
-                    repository.insert(TrackedLocationEntity(
-                        latitude = location.latitude,
-                        longitude = location.longitude,
-                        speed = location.speed,
-                        distance = 0f,
-                        duration = 0f,
-                        currentTime = Date()
-                    ))
+                    repository.insert(
+                        TrackedLocationEntity(
+                            latitude = location.latitude,
+                            longitude = location.longitude,
+                            speed = location.speed,
+                            distance = 0f,
+                            duration = 0f,
+                            currentTime = Date()
+                        )
+                    )
                 }
             }
+        )
+    }
+
+    private fun startTimer() {
+//        recordTimeInSec.value = 0
+
+        timer = Timer()
+        val timerTask = object : TimerTask() {
+            override fun run() {
+                recordTimeInSec.postValue(recordTimeInSec.value!! + 1)
+            }
         }
+        timer?.schedule(timerTask, 0, 1000)
+    }
+
+    fun getRecordTimeInSec() : LiveData<Int> {
+        return recordTimeInSec
+    }
+
+    fun pauseTracking() {
+        timer?.cancel()
+        timer = null
+        trackingLocationManager.stopLocationUpdates()
+    }
+
+    fun resumeTracking() {
+        if (timer == null)
+            startTimer()
+        trackingLocationManager.resumeLocationUpdates()
     }
 
     override fun onDestroy() {
         trackingLocationManager.destroy()
+        timer?.cancel()
         super.onDestroy()
     }
 

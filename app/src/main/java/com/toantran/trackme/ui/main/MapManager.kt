@@ -2,6 +2,7 @@ package com.toantran.trackme.ui.main
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.location.Location
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -45,6 +46,12 @@ class MapManager {
                 return@map LatLng(it.latitude, it.longitude)
             })
         }
+        fun computeDistanceBetween(startLocation: LatLng, endLocation: LatLng) : Double {
+            return SphericalUtil.computeDistanceBetween(
+                startLocation,
+                endLocation
+            )
+        }
     }
 
 
@@ -81,7 +88,7 @@ class MapManager {
                     mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(
                         LatLng(
                             it.latitude,
-                            it.longitude), 12f))
+                            it.longitude), 16f))
                 }
             }
         }
