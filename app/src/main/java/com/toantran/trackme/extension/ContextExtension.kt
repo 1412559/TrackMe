@@ -31,6 +31,7 @@ fun Context.checkGpsStatus() {
 
 fun Context.saveImageToInternalStorage(bitmap: Bitmap, name: String): String {
     val contextWrapper = ContextWrapper(this)
+    //Todo: change image dir name
     val directory: File = contextWrapper.getDir("imageDir", Context.MODE_PRIVATE)
     val filePath = File(directory, "${name}.jpg")
     var fos: FileOutputStream? = null

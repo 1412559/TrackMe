@@ -1,8 +1,7 @@
-package com.toantran.trackme.ui.main
+package com.toantran.trackme.ui.recordsession
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.location.Location
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -35,26 +34,7 @@ class MapManager {
         polyline?.startCap = CustomCap(
             BitmapDescriptorFactory.fromResource(R.drawable.pin_location)
         )
-//        polyline?.endCap = CustomCap(
-//            BitmapDescriptorFactory.fromResource(R.drawable.location)
-//        )
     }
-
-    companion object {
-        fun computePolylineLength(listTrackedLocation: List<TrackedLocationEntity>) : Double {
-            return SphericalUtil.computeLength(listTrackedLocation.map {
-                return@map LatLng(it.latitude, it.longitude)
-            })
-        }
-        fun computeDistanceBetween(startLocation: LatLng, endLocation: LatLng) : Double {
-            return SphericalUtil.computeDistanceBetween(
-                startLocation,
-                endLocation
-            )
-        }
-    }
-
-
 
     fun takeSnapshot(listTrackedLocation: List<TrackedLocationEntity>, onFinish: ((Bitmap)-> Unit)) {
         val builder: LatLngBounds.Builder = LatLngBounds.Builder()
@@ -94,7 +74,18 @@ class MapManager {
         }
     }
 
-
-
+    companion object {
+        fun computePolylineLength(listTrackedLocation: List<TrackedLocationEntity>) : Double {
+            return SphericalUtil.computeLength(listTrackedLocation.map {
+                return@map LatLng(it.latitude, it.longitude)
+            })
+        }
+        fun computeDistanceBetween(startLocation: LatLng, endLocation: LatLng) : Double {
+            return SphericalUtil.computeDistanceBetween(
+                startLocation,
+                endLocation
+            )
+        }
+    }
 
 }

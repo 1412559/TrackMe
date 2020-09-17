@@ -1,4 +1,4 @@
-package com.toantran.trackme.ui.main
+package com.toantran.trackme.ui.recordsession
 
 import androidx.lifecycle.*
 import com.google.android.gms.maps.model.LatLng
@@ -12,14 +12,12 @@ import com.toantran.trackme.repository.TrackedLocationRepository
 import kotlinx.coroutines.launch
 import java.util.*
 
-class MainActivityViewModel : ViewModel() {
+class RecordSessionViewModel : ViewModel() {
 
     private val repository: TrackedLocationRepository
     private val recordedSessionRepository: RecordedSessionRepository
 
     val allTrackedLocation: LiveData<List<TrackedLocationEntity>>
-    // Todo: remove
-//    var allRecordedSession: LiveData<List<RecordedSessionEntity>>
 
     private val mDistance : LiveData<Double>
     private val mVelocity = MutableLiveData<Float>()
@@ -36,9 +34,9 @@ class MainActivityViewModel : ViewModel() {
         val recordedSessionDao = MyDatabase.getDatabase().recordedSessionDao()
         recordedSessionRepository = RecordedSessionRepository(recordedSessionDao)
 
-//        allRecordedSession = recordedSessionRepository.allRecordedSessionDao
 
         mDistance = allTrackedLocation.map {
+            // Todo: move to converter
             return@map (MapManager.computePolylineLength(it) / 1000).toFixed(2)
         }
 
@@ -57,6 +55,7 @@ class MainActivityViewModel : ViewModel() {
         val velocity = allTrackedLocation.value?.let {
             if (it.isEmpty() || it.size < 2)
                 0f
+            // Todo: define threshold time: 5000s
             else if (Date().time - it.last().currentTime.time > 5000)
                 0f
             else {
@@ -66,6 +65,7 @@ class MainActivityViewModel : ViewModel() {
                     LatLng(startLocation.latitude, startLocation.longitude),
                     LatLng(endLocation.latitude, endLocation.longitude)
                 )
+                // Todo: convert from m to km
                 val distanceInKm = distance / 1000
                 val time = endLocation.currentTime.diffTimeInHours(startLocation.currentTime)
                 val velocity = distanceInKm.toFloat() / time
@@ -95,6 +95,7 @@ class MainActivityViewModel : ViewModel() {
         viewModelScope.launch {
             val totalDistance = mDistance.value
             val totalDuration = mDuration.value
+            // Todo: convert duration from second to hour
             val averageSpeed: Float =  if (totalDistance == null || totalDuration == null) 0f else (totalDistance * 3600 / totalDuration).toFloat()
             recordedSessionRepository.insert(
                 RecordedSessionEntity(

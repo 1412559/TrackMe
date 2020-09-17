@@ -93,10 +93,6 @@ class TrackingLocationService : Service() {
                     .build()
             startForeground(SERVICE_ID, notification)
         }
-        // TODO: recheck
-//        else {
-//            startForeground(SERVICE_ID_1, Notification())
-//        }
     }
 
     private fun setupTrackingLocationManager() {
@@ -135,8 +131,6 @@ class TrackingLocationService : Service() {
     }
 
     private fun startTimer() {
-//        recordTimeInSec.value = 0
-
         timer = Timer()
         val timerTask = object : TimerTask() {
             override fun run() {

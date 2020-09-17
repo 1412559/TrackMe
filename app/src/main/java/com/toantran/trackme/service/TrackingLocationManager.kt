@@ -18,8 +18,8 @@ class TrackingLocationManager(
 
     private val TAG = TrackingLocationManager::class.java.name
 
-    private val LOCATION_UPDATED_FREQUENCY_MIN = 10 * 1000
-    private val LOCATION_UPDATED_FREQUENCY_MAX = 15 * 1000
+//    private val LOCATION_UPDATED_FREQUENCY_MIN = 10 * 1000
+//    private val LOCATION_UPDATED_FREQUENCY_MAX = 15 * 1000
 
     private val mFusedLocationClient: FusedLocationProviderClient
     private lateinit var mLocationRequest: LocationRequest
@@ -43,13 +43,13 @@ class TrackingLocationManager(
 
     private fun createLocationRequest() {
         mLocationRequest = LocationRequest.create().apply {
-            // Todo: set smallest distance to notify location change
-//        mLocationRequest.setSmallestDisplacement(30f);
+            // Use follow code to update location frequency (time)
+//            mLocationRequest.setSmallestDisplacement(30f);
+//            interval = LOCATION_UPDATED_FREQUENCY_MAX.toLong()
+//            fastestInterval = LOCATION_UPDATED_FREQUENCY_MIN.toLong()
             smallestDisplacement = 10f
             interval = 0L
             fastestInterval = 0L
-//            interval = LOCATION_UPDATED_FREQUENCY_MAX.toLong()
-//            fastestInterval = LOCATION_UPDATED_FREQUENCY_MIN.toLong()
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }

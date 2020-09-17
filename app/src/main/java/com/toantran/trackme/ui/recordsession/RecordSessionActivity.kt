@@ -1,4 +1,4 @@
-package com.toantran.trackme.ui.main
+package com.toantran.trackme.ui.recordsession
 
 import android.Manifest
 import android.content.ComponentName
@@ -22,18 +22,18 @@ import com.toantran.trackme.R
 import com.toantran.trackme.extension.checkGpsStatus
 import com.toantran.trackme.extension.saveImageToInternalStorage
 import com.toantran.trackme.service.TrackingLocationService
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_record_session.*
 import java.util.*
 
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class RecordSessionActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private val TAG = MainActivity::class.java.name
+    private val TAG = RecordSessionActivity::class.java.name
 
     private lateinit var mMap: GoogleMap
     private lateinit var mapManager: MapManager
 
-    private lateinit var mainActivityViewModel: MainActivityViewModel
+    private lateinit var recordSessionViewModel: RecordSessionViewModel
 
     private val ACCESS_FINE_LOCATION_PERMISSION_CODE = 102
     private val FOREGROUND_SERVICE_PERMISSION_CODE = 103
@@ -44,12 +44,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_record_session)
 
         setupPermission()
 
         mapManager = MapManager()
-        mainActivityViewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
+        recordSessionViewModel = ViewModelProvider(this).get(RecordSessionViewModel::class.java)
 
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -72,38 +72,42 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupAction() {
+
         btnPause.setOnClickListener {
-            mainActivityViewModel.setRecordingStatus(false)
+            recordSessionViewModel.setRecordingStatus(false)
         }
+
         btnResume.setOnClickListener {
-            mainActivityViewModel.setRecordingStatus(true)
+            recordSessionViewModel.setRecordingStatus(true)
         }
+
         btnStop.setOnClickListener {
-            if (mainActivityViewModel.allTrackedLocation.value!!.isNotEmpty()){
-                mapManager.takeSnapshot(mainActivityViewModel.allTrackedLocation.value!!) {
+            if (recordSessionViewModel.allTrackedLocation.value!!.isNotEmpty()){
+                mapManager.takeSnapshot(recordSessionViewModel.allTrackedLocation.value!!) {
                     val path = this.saveImageToInternalStorage(it, Date().time.toString())
-                    mainActivityViewModel.saveData(path)
+                    recordSessionViewModel.saveData(path)
                 }
             } else {
                 Toast.makeText(this,"No data to record!!", Toast.LENGTH_SHORT).show()
             }
         }
+
     }
 
     private fun observeViewModel() {
-        mainActivityViewModel.allTrackedLocation.observe(this, Observer { listTrackedLocation ->
+        recordSessionViewModel.allTrackedLocation.observe(this, Observer { listTrackedLocation ->
             mapManager.drawPolyline(listTrackedLocation)
         })
 
-        mainActivityViewModel.getCurrentDistance().observe(this, Observer { distance ->
+        recordSessionViewModel.getCurrentDistance().observe(this, Observer { distance ->
             txtDistance.text = "${distance} km"
         })
 
-        mainActivityViewModel.getCurrentVelocity().observe(this, Observer { velocity ->
+        recordSessionViewModel.getCurrentVelocity().observe(this, Observer { velocity ->
             txtSpeed.text = "${velocity} km/h"
         })
 
-        mainActivityViewModel.getRecordingStatus().observe(this, Observer { isRecording ->
+        recordSessionViewModel.getRecordingStatus().observe(this, Observer { isRecording ->
             btnPause.visibility = if(isRecording) View.VISIBLE else View.GONE
             btnResume.visibility = if(!isRecording) View.VISIBLE else View.GONE
             btnStop.visibility = if(!isRecording) View.VISIBLE else View.GONE
@@ -115,14 +119,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         })
 
-        mainActivityViewModel.getCurrentDuration().observe(this, Observer { timeInSec ->
+        recordSessionViewModel.getCurrentDuration().observe(this, Observer { timeInSec ->
             txtDuration.text = "${timeInSec}s"
         })
-
-        // Todo: remove
-//        mainActivityViewModel.allRecordedSession.observe(this, Observer {
-//            locationTxt.text = "${it.size} items"
-//        })
     }
 
     private fun setupPermission() {
@@ -210,8 +209,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun observeTimerFromService() {
         mService?.getRecordTimeInSec()?.observe(this, Observer { timeInSec ->
-            mainActivityViewModel.setDuration(timeInSec)
-            mainActivityViewModel.calculateVelocity()
+            recordSessionViewModel.setDuration(timeInSec)
+            recordSessionViewModel.calculateVelocity()
         })
     }
 
