@@ -12,4 +12,6 @@ class TrackedLocationRepository(
 
     suspend fun insert(trackedLocationEntity: TrackedLocationEntity)
             = trackedLocationDao.insert(trackedLocationEntity)
+
+    suspend fun deleteAll() = trackedLocationDao.deleteAll()
 }

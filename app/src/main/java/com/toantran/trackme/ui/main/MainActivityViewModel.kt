@@ -3,26 +3,40 @@ package com.toantran.trackme.ui.main
 import androidx.lifecycle.*
 import com.google.android.gms.maps.model.LatLng
 import com.toantran.trackme.db.MyDatabase
+import com.toantran.trackme.db.entity.RecordedSessionEntity
 import com.toantran.trackme.db.entity.TrackedLocationEntity
 import com.toantran.trackme.extension.diffTimeInHours
 import com.toantran.trackme.extension.toFixed
+import com.toantran.trackme.repository.RecordedSessionRepository
 import com.toantran.trackme.repository.TrackedLocationRepository
+import kotlinx.coroutines.launch
 import java.util.*
 
 class MainActivityViewModel : ViewModel() {
 
     private val repository: TrackedLocationRepository
+    private val recordedSessionRepository: RecordedSessionRepository
 
     val allTrackedLocation: LiveData<List<TrackedLocationEntity>>
+    // Todo: remove
+//    var allRecordedSession: LiveData<List<RecordedSessionEntity>>
+
     private val mDistance : LiveData<Double>
     private val mVelocity = MutableLiveData<Float>()
+    private val mDuration = MutableLiveData<Int>()
 
     private val isRecording = MutableLiveData<Boolean>()
 
     init {
         val trackedLocationDao = MyDatabase.getDatabase().trackedLocationDao()
         repository = TrackedLocationRepository(trackedLocationDao)
+
         allTrackedLocation = repository.allTrackedLocationDao
+
+        val recordedSessionDao = MyDatabase.getDatabase().recordedSessionDao()
+        recordedSessionRepository = RecordedSessionRepository(recordedSessionDao)
+
+//        allRecordedSession = recordedSessionRepository.allRecordedSessionDao
 
         mDistance = allTrackedLocation.map {
             return@map (MapManager.computePolylineLength(it) / 1000).toFixed(2)
@@ -67,6 +81,31 @@ class MainActivityViewModel : ViewModel() {
 
     fun getCurrentDistance() : LiveData<Double> {
         return mDistance
+    }
+
+    fun setDuration(duration: Int) {
+        mDuration.value = duration
+    }
+
+    fun getCurrentDuration() : LiveData<Int> {
+        return mDuration
+    }
+
+    fun saveData(mapImagePath: String) {
+        viewModelScope.launch {
+            val totalDistance = mDistance.value
+            val totalDuration = mDuration.value
+            val averageSpeed: Float =  if (totalDistance == null || totalDuration == null) 0f else (totalDistance * 3600 / totalDuration).toFloat()
+            recordedSessionRepository.insert(
+                RecordedSessionEntity(
+                    averageSpeed = averageSpeed,
+                    totalDistance = totalDistance ?: 0.0,
+                    totalDuration = totalDuration ?: 0,
+                    mapImagePath = mapImagePath
+                )
+            )
+            repository.deleteAll()
+        }
     }
 
 }

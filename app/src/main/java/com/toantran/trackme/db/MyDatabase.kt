@@ -7,14 +7,23 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.toantran.trackme.MyApplication
 import com.toantran.trackme.db.converter.DateConverter
+import com.toantran.trackme.db.dao.RecordedSessionDao
 import com.toantran.trackme.db.dao.TrackedLocationDao
+import com.toantran.trackme.db.entity.RecordedSessionEntity
 import com.toantran.trackme.db.entity.TrackedLocationEntity
 
-@Database(entities = arrayOf(TrackedLocationEntity::class), version = 1, exportSchema = false)
+@Database(
+    entities = [
+        TrackedLocationEntity::class,
+        RecordedSessionEntity::class
+    ]
+    , version = 1,
+    exportSchema = false)
 @TypeConverters(DateConverter::class)
 public abstract class MyDatabase : RoomDatabase() {
 
     abstract fun trackedLocationDao(): TrackedLocationDao
+    abstract fun recordedSessionDao(): RecordedSessionDao
 
     companion object {
         @Volatile

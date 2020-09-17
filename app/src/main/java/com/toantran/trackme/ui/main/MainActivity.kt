@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -19,8 +20,10 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.toantran.trackme.R
 import com.toantran.trackme.extension.checkGpsStatus
+import com.toantran.trackme.extension.saveImageToInternalStorage
 import com.toantran.trackme.service.TrackingLocationService
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -69,16 +72,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupAction() {
-//        btnTakeSnapShot.setOnClickListener {
-//            if (mainActivityViewModel.allTrackedLocation.value!!.isNotEmpty())
-//                mapManager.takeSnapshot(mainActivityViewModel.allTrackedLocation.value!!) {
-//                    imageView.apply {
-//                        setImageBitmap(it)
-//                        visibility = View.VISIBLE
-//                    }
-//                }
-//        }
-
         btnPause.setOnClickListener {
             mainActivityViewModel.setRecordingStatus(false)
         }
@@ -86,8 +79,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             mainActivityViewModel.setRecordingStatus(true)
         }
         btnStop.setOnClickListener {
-//            mainActivityViewModel.setRecordingStatus(true)
-
+            if (mainActivityViewModel.allTrackedLocation.value!!.isNotEmpty()){
+                mapManager.takeSnapshot(mainActivityViewModel.allTrackedLocation.value!!) {
+                    val path = this.saveImageToInternalStorage(it, Date().time.toString())
+                    mainActivityViewModel.saveData(path)
+                }
+            } else {
+                Toast.makeText(this,"No data to record!!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -115,6 +114,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 mService?.pauseTracking()
             }
         })
+
+        mainActivityViewModel.getCurrentDuration().observe(this, Observer { timeInSec ->
+            txtDuration.text = "${timeInSec}s"
+        })
+
+        // Todo: remove
+//        mainActivityViewModel.allRecordedSession.observe(this, Observer {
+//            locationTxt.text = "${it.size} items"
+//        })
     }
 
     private fun setupPermission() {
@@ -172,25 +180,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
-//    private var trackingLocationService: Intent? = null
-
     private fun startTrackingLocationService() {
-//        trackingLocationService = Intent(this, TrackingLocationService::class.java)
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            startForegroundService(trackingLocationService)
-//        } else {
-//            startService(trackingLocationService)
-//        }
         Intent(this, TrackingLocationService::class.java).also { intent ->
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
 
     private fun stopTrackingLocationService() {
-//        if (trackingLocationService != null) {
-//            stopService(trackingLocationService)
-//            trackingLocationService = null
-//        }
         Intent(this, TrackingLocationService::class.java).also { intent ->
             unbindService(serviceConnection)
         }
@@ -214,7 +210,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun observeTimerFromService() {
         mService?.getRecordTimeInSec()?.observe(this, Observer { timeInSec ->
-            txtDuration.text = "${timeInSec}s"
+            mainActivityViewModel.setDuration(timeInSec)
             mainActivityViewModel.calculateVelocity()
         })
     }
