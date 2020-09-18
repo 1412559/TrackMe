@@ -1,6 +1,7 @@
 package com.toantran.trackme.db.dao
 
 import androidx.lifecycle.LiveData
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -12,6 +13,9 @@ interface RecordedSessionDao {
 
     @Query("SELECT * from recorded_session_table ORDER BY id DESC")
     fun getAll(): LiveData<List<RecordedSessionEntity>>
+
+    @Query("SELECT * from recorded_session_table ORDER BY id COLLATE NOCASE DESC")
+    fun getAllPaging(): PagingSource<Int, RecordedSessionEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(recordedSessionEntity: RecordedSessionEntity)

@@ -25,6 +25,8 @@ class RecordSessionViewModel : ViewModel() {
 
     private val isRecording = MutableLiveData<Boolean>()
 
+    private val eventBackToHome = MutableLiveData<Boolean>()
+
     init {
         val trackedLocationDao = MyDatabase.getDatabase().trackedLocationDao()
         repository = TrackedLocationRepository(trackedLocationDao)
@@ -106,7 +108,12 @@ class RecordSessionViewModel : ViewModel() {
                 )
             )
             repository.deleteAll()
+            eventBackToHome.postValue(true)
         }
+    }
+
+    fun getEventBackToHome() : LiveData<Boolean> {
+        return eventBackToHome
     }
 
 }

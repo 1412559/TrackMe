@@ -122,6 +122,12 @@ class RecordSessionActivity : AppCompatActivity(), OnMapReadyCallback {
         recordSessionViewModel.getCurrentDuration().observe(this, Observer { timeInSec ->
             txtDuration.text = "${timeInSec}s"
         })
+
+        recordSessionViewModel.getEventBackToHome().observe(this, Observer { isBackToHome ->
+            if (isBackToHome) {
+                finish()
+            }
+        })
     }
 
     private fun setupPermission() {
