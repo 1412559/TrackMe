@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.location.LocationManager
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
+import com.toantran.trackme.utils.Constants
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -31,9 +32,8 @@ fun Context.checkGpsStatus() {
 
 fun Context.saveImageToInternalStorage(bitmap: Bitmap, name: String): String {
     val contextWrapper = ContextWrapper(this)
-    //Todo: change image dir name
-    val directory: File = contextWrapper.getDir("imageDir", Context.MODE_PRIVATE)
-    val filePath = File(directory, "${name}.jpg")
+    val directory: File = contextWrapper.getDir(Constants.IMAGE_DIR_PATH, Context.MODE_PRIVATE)
+    val filePath = File(directory, "${name}${Constants.IMAGE_SAVED_EXTENSION}")
     var fos: FileOutputStream? = null
     try {
         fos = FileOutputStream(filePath)

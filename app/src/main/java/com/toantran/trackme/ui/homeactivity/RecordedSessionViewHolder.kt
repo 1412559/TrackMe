@@ -11,6 +11,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.toantran.trackme.R
 import com.toantran.trackme.db.entity.RecordedSessionEntity
+import com.toantran.trackme.extension.secondsToTimeString
 import java.io.File
 
 class RecordedSessionViewHolder(parent : ViewGroup) : RecyclerView.ViewHolder(
@@ -32,7 +33,7 @@ class RecordedSessionViewHolder(parent : ViewGroup) : RecyclerView.ViewHolder(
 
         txtTotalDistance.text = recordedSessionEntity?.totalDistance.toString() + " km\nDistance"
         txtAveSpeed.text = recordedSessionEntity?.averageSpeed.toString() + " km/h\nAvg. Speed"
-        txtTotalDuration.text = recordedSessionEntity?.totalDuration.toString() + "s"
+        txtTotalDuration.text = recordedSessionEntity?.totalDuration?.secondsToTimeString() ?: "00:00:00"
 
         Glide
             .with(imageMap)

@@ -21,6 +21,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.toantran.trackme.R
 import com.toantran.trackme.extension.checkGpsStatus
 import com.toantran.trackme.extension.saveImageToInternalStorage
+import com.toantran.trackme.extension.secondsToTimeString
 import com.toantran.trackme.service.TrackingLocationService
 import kotlinx.android.synthetic.main.activity_record_session.*
 import java.util.*
@@ -120,7 +121,7 @@ class RecordSessionActivity : AppCompatActivity(), OnMapReadyCallback {
         })
 
         recordSessionViewModel.getCurrentDuration().observe(this, Observer { timeInSec ->
-            txtDuration.text = "${timeInSec}s"
+            txtDuration.text = timeInSec.secondsToTimeString()
         })
 
         recordSessionViewModel.getEventBackToHome().observe(this, Observer { isBackToHome ->

@@ -27,3 +27,12 @@ fun Date.diffTimeInHours(date: Date): Float {
     val diff = this.time - date.time
     return abs(diff * 1f / (1000 * 60 * 60));
 }
+
+fun Int.secondsToTimeString() : String {
+    var secs = this
+    val hours = secs / 3600
+    secs %= 3600
+    val minutes = secs / 60
+    secs %= 60
+    return String.format("%02d:%02d:%02d", hours, minutes, secs);
+}
